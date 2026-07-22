@@ -42,6 +42,7 @@ npx apiflux-cli init --key -              # read the key from stdin
 - If a different base URL or token is already configured, the CLI asks before replacing it.
 - Your key is never written to logs and is masked (`sk-***`) in every error message.
 - If you pass `--key` inline, the CLI reminds you to clear it from shell history; prefer the interactive prompt or `--key -`.
+- The CLI never touches your ApiFlux account — it only ever holds the API key you give it, by design ([ADR-0001](./docs/adr/0001-key-only-no-account-session.md)).
 
 ## Requirements
 
