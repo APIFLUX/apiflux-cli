@@ -1,0 +1,28 @@
+{
+  "name": "@apiflux/cli",
+  "version": "0.1.0",
+  "description": "ApiFlux CLI — organization-scoped alias of the apiflux-cli package",
+  "type": "module",
+  "bin": {
+    "apiflux": "./bin.mjs"
+  },
+  "files": [
+    "bin.mjs"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/APIFLUX/apiflux-cli.git",
+    "directory": "scoped"
+  },
+  "homepage": "https://apiflux.ai",
+  "license": "MIT",
+  "dependencies": {
+    "apiflux-cli": "^0.1.0"
+  }
+}

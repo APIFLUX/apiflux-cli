@@ -1,0 +1,44 @@
+{
+  "name": "apiflux-cli",
+  "version": "0.1.0",
+  "description": "One-command setup of ApiFlux for local AI coding tools (Claude Code, Codex CLI)",
+  "type": "module",
+  "bin": {
+    "apiflux": "./dist/apiflux.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "build": "bun build src/main.ts --target=node --outfile=dist/apiflux.js",
+    "prepublishOnly": "bun test && bun run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/APIFLUX/apiflux-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/APIFLUX/apiflux-cli/issues"
+  },
+  "homepage": "https://apiflux.ai",
+  "keywords": [
+    "apiflux",
+    "claude-code",
+    "codex",
+    "openai-compatible",
+    "api-gateway",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^1.7.0",
+    "smol-toml": "^1.7.0"
+  }
+}
