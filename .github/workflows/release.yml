@@ -21,6 +21,26 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun test
       - run: bun run build
-      - run: npm publish --provenance --access public
+      # Both publishes skip already-released versions so a re-run after a
+      # partial failure stays idempotent.
+      - name: Publish apiflux-cli
+        run: |
+          ver=$(node -p "require('./package.json').version")
+          if npm view "apiflux-cli@$ver" version >/dev/null 2>&1; then
+            echo "apiflux-cli@$ver already published, skipping"
+          else
+            npm publish --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish @apiflux/cli alias
+        working-directory: scoped
+        run: |
+          ver=$(node -p "require('./package.json').version")
+          if npm view "@apiflux/cli@$ver" version >/dev/null 2>&1; then
+            echo "@apiflux/cli@$ver already published, skipping"
+          else
+            npm publish --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
