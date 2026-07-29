@@ -21,3 +21,5 @@ Status: ready-for-agent（第一批；调研结论已落，见 Comments）
   - **默认模型**：`GEMINI_MODEL` 环境变量或 `settings.json` 的 `model.name`。
   - 适配器落点：detect `~/.gemini/`；写 `~/.gemini/.env`（BASE_URL + GEMINI_API_KEY + 可选 GEMINI_MODEL），conflicts 检测既有不同值；真机冒烟确认 auth type 是否需要显式写 settings.json。
   - 来源：官方配置文档 google-gemini.github.io/gemini-cli/docs/get-started/configuration.html；PR google-gemini/gemini-cli#2899、#6380、#6748。
+
+- 2026-07-29 真机冒烟结论 → **wontfix**：老 Gemini CLI 已于 2026-06-18 对个人/免费用户停服（I/O 2026 并入 Antigravity 品牌）；替代品 Antigravity CLI（agy 1.1.8）实测**强制 Google OAuth/Cloud project 登录，无 API key 认证入口**（上游 feature request google-antigravity/antigravity-cli#78 仍开着），`GEMINI_API_KEY`/`GOOGLE_GEMINI_BASE_URL` 环境变量满足不了认证——"一把 Key 接入"在该工具上讲不通。适配器代码已 revert（保留在历史 501f302，未来要复活可 revert the revert）。cc-switch 的 gemini app 只写环境变量（build_gemini_settings），无工具消费，Web 弹窗同步下掉 Gemini 选项。Antigravity 若未来开放 API key 认证再评估（归入第二批调研）。
