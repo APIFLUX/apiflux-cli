@@ -3,6 +3,7 @@ import type { Adapter } from "./adapters/types";
 import { claudeCodeAdapter } from "./adapters/claude-code";
 import { codexAdapter } from "./adapters/codex";
 import { genericExportAdapter } from "./adapters/generic-export";
+import { opencodeAdapter } from "./adapters/opencode";
 import { normalizeBaseUrl } from "./endpoint";
 import { maskKeysIn } from "./mask";
 import { groupModelsByMaker, type ModelGroup } from "./model-groups";
@@ -15,6 +16,7 @@ export const DEFAULT_BASE_URL = "https://apiflux.ai";
 export const ADAPTERS: Record<ToolId, Adapter> = {
   "claude-code": claudeCodeAdapter,
   codex: codexAdapter,
+  opencode: opencodeAdapter,
   export: genericExportAdapter,
 };
 
@@ -65,7 +67,7 @@ export async function runInit(args: ParsedArgs, deps: InitDeps): Promise<number>
     model = await deps.selectModel(groupModelsByMaker(availableModels));
   }
 
-  const input = { baseUrl, key, model };
+  const input = { baseUrl, key, model, availableModels };
   let failed = false;
   for (const toolId of args.tools) {
     const adapter = ADAPTERS[toolId];

@@ -5,6 +5,11 @@ export interface AdapterInput {
   key: string;
   /** Default model to configure; absent = keep each tool's own default. */
   model?: string;
+  /**
+   * All model ids the key can use, when verification ran. Tools that require
+   * models to be declared up front (opencode) register the full list.
+   */
+  availableModels?: string[];
 }
 
 export interface AdapterPlan {
