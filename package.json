@@ -1,6 +1,6 @@
 {
   "name": "apiflux-cli",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "One-command setup of ApiFlux for local AI coding tools (Claude Code, Codex CLI, OpenCode, Pi, Hermes)",
   "type": "module",
   "bin": {
