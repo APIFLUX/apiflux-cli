@@ -1,6 +1,6 @@
 {
   "name": "@apiflux/cli",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "ApiFlux CLI — organization-scoped alias of the apiflux-cli package",
   "type": "module",
   "bin": {
@@ -23,6 +23,6 @@
   "homepage": "https://apiflux.ai",
   "license": "MIT",
   "dependencies": {
-    "apiflux-cli": "^0.6.0"
+    "apiflux-cli": "^0.7.0"
   }
 }
