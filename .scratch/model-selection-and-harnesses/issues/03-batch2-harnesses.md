@@ -10,7 +10,7 @@ Status: in-progress（2026-07-29 调研完成，已拆出 04–07）
 
 ## 清单
 
-- [ ] Pi Agent → `05-pi-agent-adapter.md`
+- [x] Pi Agent → `05-pi-agent-adapter.md`（适配器已实现，待冒烟发版）
 - [x] OpenCode → `04-opencode-adapter.md`（适配器已实现，待冒烟发版）
 - [ ] Openclaw → `06-openclaw-adapter.md`
 - [ ] Hermes → `07-hermes-adapter.md`

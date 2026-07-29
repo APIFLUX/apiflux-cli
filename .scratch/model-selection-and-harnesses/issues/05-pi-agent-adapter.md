@@ -1,6 +1,6 @@
 # 05 Pi Agent 适配器
 
-Status: ready-for-agent（调研已落，2026-07-29）
+Status: implemented（2026-07-29 适配器+测试完成，待真机冒烟后发 minor）
 
 从 03 占位拆出。Pi = badlogic/pi-mono（earendil-works/pi 镜像）coding agent，bin `pi`。
 
@@ -28,13 +28,17 @@ Status: ready-for-agent（调研已落，2026-07-29）
 - 默认模型：交互 `/model` 或 `--model` 旗标；**落盘持久化机制（settings.json?）文档未写清，实施时读源码确认**。
 - Anthropic 兼容 compat 项（supportsStrictTools 等）仅在走 anthropic-messages 时需要，走 openai-completions 可忽略。
 
-## 待实施核对项
+## 核对结论（读 badlogic/pi-mono 源码，2026-07-29）
 
-- [ ] 默认模型持久化位置（~/.pi/agent/settings.json?）
-- [ ] models.json 与内置 provider 的 merge 语义（同名覆盖？）
-- [ ] detect 依据：`~/.pi/` 目录
+- [x] **模型元数据全可选**：ModelDefinitionSchema 只有 `id` 必填（model-config.ts），"要求全量元数据"是过时文档误导 → models 数组只写 `{id}`。
+- [x] 默认模型持久化：`~/.pi/agent/settings.json` 的 `defaultProvider` + `defaultModel`（resolver 要求两者同有且 provider 已配置鉴权，model-resolver.ts）。
+- [x] key 走 pi 原生凭证库 `~/.pi/agent/auth.json`：`{"apiflux":{"type":"api_key","key":...}}`（0600/目录 0700）；provider-composer.ts 里 stored credential 优先于 models.json `apiKey` 字段（后者另支持 `$ENV`/`!命令`）。
+- [x] merge：models.json 的 providers 与内置按 id 叠加，新 id `apiflux` 纯新增无冲突。
+- [x] detect：`~/.pi/`；路径尊重 `PI_CODING_AGENT_DIR` 覆盖（config.ts getAgentDir）。
+- [x] ⚠️ pi 读 JSON 会 strip 注释（JSONC）：适配器安全读取，解析失败不动文件、打印手动 snippet（models.json/settings.json 各自独立降级，auth.json 照写）。
 
 ## 方案
 
-- 写 `providers.apiflux`（openai-completions + withV1），key 字面量；仅写入用户选中的模型（不同步全目录），contextWindow/maxTokens 用保守默认（128k/32k），cost 全 0（网关侧计费，本地显示不作数——README 注明）。
-- 未选模型时的行为：Pi 要求 models 数组非空才有意义，倾向「未选模型则提示必须 --model / 交互选择」——实施时定。
+- 已实现 `src/adapters/pi.ts`：models.json 写 `providers.apiflux`（openai-completions + withV1 + 全量模型 `{id}` 列表）；auth.json 写凭证（0600）；选中模型时 settings.json 写 defaultProvider/defaultModel。
+- plan() 冲突项：baseUrl 变更 / auth key 变更（脱敏）/ 默认模型变更 / JSONC 无法解析（manual merge 提示）。
+- 冒烟步骤：`apiflux init --tool pi --model <id>` → 启动 pi 确认 /model 列出 ApiFlux 模型、默认模型生效、对话跑通。
