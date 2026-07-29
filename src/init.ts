@@ -5,6 +5,7 @@ import { codexAdapter } from "./adapters/codex";
 import { genericExportAdapter } from "./adapters/generic-export";
 import { opencodeAdapter } from "./adapters/opencode";
 import { piAdapter } from "./adapters/pi";
+import { hermesAdapter } from "./adapters/hermes";
 import { normalizeBaseUrl } from "./endpoint";
 import { maskKeysIn } from "./mask";
 import { groupModelsByMaker, type ModelGroup } from "./model-groups";
@@ -19,6 +20,7 @@ export const ADAPTERS: Record<ToolId, Adapter> = {
   codex: codexAdapter,
   opencode: opencodeAdapter,
   pi: piAdapter,
+  hermes: hermesAdapter,
   export: genericExportAdapter,
 };
 
