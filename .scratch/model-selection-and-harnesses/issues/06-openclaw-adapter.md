@@ -1,6 +1,6 @@
 # 06 Openclaw 适配器
 
-Status: research-done（2026-07-29 源码级调研闭环，无真机冒烟——用户拍板不在本机安装）
+Status: implemented（2026-07-29 适配器+测试完成，Docker 隔离冒烟通过，待发 minor）
 
 从 03 占位拆出。
 
@@ -35,4 +35,5 @@ Status: research-done（2026-07-29 源码级调研闭环，无真机冒烟——
 
 - json5 依赖读（容注释）、`models.providers.apiflux` merge 回写（全量模型 `{id,name}`）、选中模型时置 `agents.defaults.model.primary`。
 - plan() 冲突：baseUrl 变更 / apiKey 变更（脱敏）/ primary 变更 / 原文件含注释（提示将被抹掉，同官方行为）/ 含 `$include`（降级手动 snippet）。
-- 验证：单测 + 源码级契约（无真机冒烟）；可选 docker 冒烟待议（仓库自带 Dockerfile）。
+- 验证（2026-07-29 已过）：单测 16 例 + **Docker 隔离冒烟**（ghcr.io/openclaw/openclaw:latest，挂载隔离 state dir）：`openclaw agent --local` 默认模型与 `--model apiflux/claude-haiku-4-5` 两发 SMOKE-OK，日志确认打到 apiflux.ai /v1/chat/completions 200；冒烟目录（含 key）已删。
+- ⚠️ Docker 冒烟坑：宿主目录必须在 Docker Desktop 文件共享列表内（/private/tmp 不在，bind 会静默落到 VM 空目录）；容器内以 --user root -e HOME=/root 挂 /root/.openclaw 最省事。

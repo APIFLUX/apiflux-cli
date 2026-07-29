@@ -1,7 +1,7 @@
 {
   "name": "apiflux-cli",
   "version": "0.6.0",
-  "description": "One-command setup of ApiFlux for local AI coding tools (Claude Code, Codex CLI, OpenCode, Pi, Hermes)",
+  "description": "One-command setup of ApiFlux for local AI coding tools (Claude Code, Codex CLI, OpenCode, Pi, Hermes, OpenClaw)",
   "type": "module",
   "bin": {
     "apiflux": "./dist/apiflux.js"
@@ -40,6 +40,7 @@
   "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^1.7.0",
+    "json5": "^2.2.3",
     "smol-toml": "^1.7.0",
     "yaml": "^2.9.0"
   }
