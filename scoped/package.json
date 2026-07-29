@@ -1,6 +1,6 @@
 {
   "name": "@apiflux/cli",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "ApiFlux CLI — organization-scoped alias of the apiflux-cli package",
   "type": "module",
   "bin": {
