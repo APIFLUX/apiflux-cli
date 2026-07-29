@@ -1,6 +1,6 @@
 # 03 第二批 Harness：Pi Agent / OpenCode / Openclaw / Hermes
 
-Status: in-progress（2026-07-29 调研完成，已拆出 04–07）
+Status: done（2026-07-29 全部完成：OpenCode v0.4.0 / Pi v0.5.0 / Hermes v0.6.0 / OpenClaw v0.7.0，各自独立 minor 发版）
 
 ## 口径（已拍板）
 
