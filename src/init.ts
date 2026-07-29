@@ -2,6 +2,7 @@ import type { ParsedArgs, ToolId } from "./args";
 import type { Adapter } from "./adapters/types";
 import { claudeCodeAdapter } from "./adapters/claude-code";
 import { codexAdapter } from "./adapters/codex";
+import { geminiCliAdapter } from "./adapters/gemini-cli";
 import { genericExportAdapter } from "./adapters/generic-export";
 import { normalizeBaseUrl } from "./endpoint";
 import { maskKeysIn } from "./mask";
@@ -15,6 +16,7 @@ export const DEFAULT_BASE_URL = "https://apiflux.ai";
 export const ADAPTERS: Record<ToolId, Adapter> = {
   "claude-code": claudeCodeAdapter,
   codex: codexAdapter,
+  "gemini-cli": geminiCliAdapter,
   export: genericExportAdapter,
 };
 

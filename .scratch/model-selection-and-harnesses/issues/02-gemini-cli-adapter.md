@@ -1,6 +1,6 @@
 # 02 Gemini CLI 适配器
 
-Status: ready-for-agent（第一批；调研结论已落，见 Comments）
+Status: ready-for-human（第一批；代码已完成，剩真机冒烟）
 
 ## 要做什么
 
@@ -21,3 +21,5 @@ Status: ready-for-agent（第一批；调研结论已落，见 Comments）
   - **默认模型**：`GEMINI_MODEL` 环境变量或 `settings.json` 的 `model.name`。
   - 适配器落点：detect `~/.gemini/`；写 `~/.gemini/.env`（BASE_URL + GEMINI_API_KEY + 可选 GEMINI_MODEL），conflicts 检测既有不同值；真机冒烟确认 auth type 是否需要显式写 settings.json。
   - 来源：官方配置文档 google-gemini.github.io/gemini-cli/docs/get-started/configuration.html；PR google-gemini/gemini-cli#2899、#6380、#6748。
+
+- 2026-07-29 适配器已实现（TDD，11 用例先红后绿 + init e2e）：`src/adapters/gemini-cli.ts` 写 `~/.gemini/.env`（`GOOGLE_GEMINI_BASE_URL`/`GEMINI_API_KEY`/可选 `GEMINI_MODEL`），detect=`~/.gemini` 目录，conflicts 不回显旧 key，写入保留无关行 + backupOnce；`--tool gemini-cli` 已注册，README 已更新。基 URL 变量名已对上游 main 源码核实（contentGenerator 读 `GOOGLE_GEMINI_BASE_URL` 注入 httpOptions.baseUrl）。**剩真机冒烟**（用户执行）：装 Gemini CLI 后跑 gemini 模型与非 gemini 模型各一轮（首条对话 + 工具调用），确认 auth type 是否还需显式设 settings.json 的 `security.auth.selectedType`；结果记入 apiflux-web 冒烟矩阵。
