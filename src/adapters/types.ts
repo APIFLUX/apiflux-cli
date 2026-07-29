@@ -3,6 +3,8 @@ import type { ToolId } from "../args";
 export interface AdapterInput {
   baseUrl: string;
   key: string;
+  /** Default model to configure; absent = keep each tool's own default. */
+  model?: string;
 }
 
 export interface AdapterPlan {

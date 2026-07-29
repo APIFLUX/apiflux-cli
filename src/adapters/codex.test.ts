@@ -80,3 +80,21 @@ describe("codexAdapter.write", () => {
     expect(backups.length).toBe(1);
   });
 });
+
+describe("codexAdapter model conflicts", () => {
+  test("existing different default model/provider → conflicts when a model is chosen", () => {
+    const home = mkdtempSync(join(tmpdir(), "apiflux-cli-codex-model-"));
+    mkdirSync(join(home, ".codex"), { recursive: true });
+    writeFileSync(
+      join(home, ".codex", "config.toml"),
+      'model = "gpt-5"\nmodel_provider = "openai"\n',
+    );
+    const { conflicts } = codexAdapter.plan(home, {
+      baseUrl: BASE_URL,
+      key: KEY,
+      model: "deepseek-v4-pro",
+    });
+    expect(conflicts.some((line) => line.includes("default model gpt-5"))).toBe(true);
+    expect(conflicts.some((line) => line.includes("model_provider openai"))).toBe(true);
+  });
+});

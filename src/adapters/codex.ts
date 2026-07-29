@@ -37,6 +37,15 @@ export const codexAdapter: Adapter = {
     if (existing && typeof existing.base_url === "string" && existing.base_url !== targetUrl) {
       conflicts.push(`Codex: replace model_providers.apiflux base_url ${existing.base_url} → ${targetUrl}`);
     }
+    if (input.model !== undefined) {
+      const config = readConfig(home);
+      if (typeof config.model === "string" && config.model !== input.model) {
+        conflicts.push(`Codex: replace default model ${config.model} → ${input.model}`);
+      }
+      if (typeof config.model_provider === "string" && config.model_provider !== "apiflux") {
+        conflicts.push(`Codex: replace default model_provider ${config.model_provider} → apiflux`);
+      }
+    }
     return { conflicts };
   },
 
@@ -56,12 +65,23 @@ export const codexAdapter: Adapter = {
       wire_api: "chat",
     };
     config.model_providers = providers;
+    // A chosen model makes ApiFlux the default provider outright; without
+    // one we only register the provider and let the user opt in per run.
+    if (input.model !== undefined) {
+      config.model = input.model;
+      config.model_provider = "apiflux";
+    }
     mkdirSync(join(home, ".codex"), { recursive: true });
     writeFileSync(path, stringify(config) + "\n");
-    return [
+    const notes = [
       `Codex CLI: wrote model_providers.apiflux to ${path}`,
       `Codex CLI: add to your shell profile: export APIFLUX_API_KEY="<your key>"`,
-      `Codex CLI: select it with: codex --config model_provider=apiflux`,
     ];
+    notes.push(
+      input.model !== undefined
+        ? `Codex CLI: default model set to ${input.model} via provider apiflux`
+        : `Codex CLI: select it with: codex --config model_provider=apiflux`,
+    );
+    return notes;
   },
 };

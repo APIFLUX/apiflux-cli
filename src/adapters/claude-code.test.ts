@@ -109,3 +109,31 @@ describe("claudeCodeAdapter.write", () => {
     expect(readFileSync(settingsPath(home), "utf8")).toBe(first);
   });
 });
+
+describe("claudeCodeAdapter model conflicts", () => {
+  test("existing different ANTHROPIC_MODEL → conflict when a model is chosen", () => {
+    const home = tempHome();
+    mkdirSync(join(home, ".claude"), { recursive: true });
+    writeFileSync(
+      settingsPath(home),
+      JSON.stringify({ env: { ANTHROPIC_MODEL: "claude-opus-5" } }),
+    );
+    const { conflicts } = claudeCodeAdapter.plan(home, {
+      baseUrl: BASE_URL,
+      key: KEY,
+      model: "deepseek-v4-pro",
+    });
+    expect(conflicts.some((line) => line.includes("ANTHROPIC_MODEL"))).toBe(true);
+  });
+
+  test("no chosen model → existing ANTHROPIC_MODEL is not a conflict", () => {
+    const home = tempHome();
+    mkdirSync(join(home, ".claude"), { recursive: true });
+    writeFileSync(
+      settingsPath(home),
+      JSON.stringify({ env: { ANTHROPIC_MODEL: "claude-opus-5" } }),
+    );
+    const { conflicts } = claudeCodeAdapter.plan(home, { baseUrl: BASE_URL, key: KEY });
+    expect(conflicts).toEqual([]);
+  });
+});

@@ -1,7 +1,7 @@
 import { maskKeysIn } from "./mask";
 
 export type VerifyResult =
-  | { status: "ok"; modelCount: number }
+  | { status: "ok"; modelCount: number; models: string[] }
   | { status: "unauthorized" }
   | { status: "network-error"; message: string };
 
@@ -16,8 +16,11 @@ export async function verifyKey(baseUrl: string, key: string): Promise<VerifyRes
     if (!response.ok) {
       return { status: "network-error", message: `unexpected HTTP ${response.status}` };
     }
-    const body = (await response.json()) as { data?: unknown[] };
-    return { status: "ok", modelCount: Array.isArray(body.data) ? body.data.length : 0 };
+    const body = (await response.json()) as { data?: { id?: unknown }[] };
+    const models = Array.isArray(body.data)
+      ? body.data.map((entry) => entry?.id).filter((id): id is string => typeof id === "string")
+      : [];
+    return { status: "ok", modelCount: models.length, models };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return { status: "network-error", message: maskKeysIn(message, key) };
