@@ -1,4 +1,4 @@
-export const KNOWN_TOOLS = ["claude-code", "codex", "opencode", "pi", "export"] as const;
+export const KNOWN_TOOLS = ["claude-code", "codex", "opencode", "pi", "hermes", "export"] as const;
 export type ToolId = (typeof KNOWN_TOOLS)[number];
 
 export interface ParsedArgs {

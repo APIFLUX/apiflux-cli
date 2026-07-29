@@ -1,6 +1,6 @@
 # 07 Hermes 适配器
 
-Status: research-done（2026-07-29 源码级调研闭环，无真机冒烟——用户拍板不在本机安装）
+Status: implemented（2026-07-29 适配器+测试完成，scratchpad venv 隔离冒烟通过，待发 minor）
 
 从 03 占位拆出。Hermes = NousResearch/hermes-agent（Python），bin `hermes`。
 
@@ -29,4 +29,6 @@ Status: research-done（2026-07-29 源码级调研闭环，无真机冒烟——
 - 写 `config.yaml`：`custom_providers` 数组 merge（按 name=ApiFlux 匹配更新/追加）+ 选中模型时置 `model.provider: apiflux` + `model.default: <id>`；`yaml` Document API 保注释。
 - 写 `.env`：`APIFLUX_API_KEY` 行级 upsert，0600。
 - plan() 冲突：base_url 变更 / model.provider|default 变更 / .env 已有不同 APIFLUX_API_KEY（脱敏）。
-- 验证：单测 + 源码级契约（无真机冒烟）；可选 scratchpad venv 冒烟待议。
+- 验证（2026-07-29 已过）：单测 14 例 + **scratchpad venv 隔离冒烟**（hermes-agent 0.19.0 / PyPI + HERMES_HOME 指向 scratchpad）：默认模型 one-shot（`hermes -z`）与 `--provider apiflux --model claude-haiku-4-5` 两发 SMOKE-OK；冒烟目录（含 key）已删。
+- ⚠️ 冒烟发现：hermes 裸 `--model <id>`（无 --provider）可能撞别家 catalog 同名模型（实测撞到 opencode-zen）——需要显式指定时用 `--provider apiflux`；默认模型路径（config.yaml）不受影响。
+- 附注：hermes-agent 源码目录禁止非 editable 安装（uv pip install 目录会拒绝），从 PyPI 装即可。

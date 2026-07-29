@@ -160,6 +160,28 @@ describe("pi wiring", () => {
   });
 });
 
+describe("hermes wiring", () => {
+  test("--tool hermes registers custom provider and stores the key in .env", async () => {
+    const savedHermesHome = process.env.HERMES_HOME;
+    delete process.env.HERMES_HOME;
+    try {
+      const { home, log } = setup();
+      mkdirSync(join(home, ".hermes"));
+      const args = parseArgs(["init", "--key", KEY, "--base-url", baseUrl, "--tool", "hermes", "--yes"]);
+      const code = await runInit(args, { home, log });
+      expect(code).toBe(0);
+      const raw = readFileSync(join(home, ".hermes", "config.yaml"), "utf8");
+      expect(raw).toContain("ApiFlux");
+      expect(raw).toContain("deepseek-v4-pro");
+      expect(raw).not.toContain(KEY);
+      expect(readFileSync(join(home, ".hermes", ".env"), "utf8")).toContain(`APIFLUX_API_KEY=${KEY}`);
+    } finally {
+      if (savedHermesHome === undefined) delete process.env.HERMES_HOME;
+      else process.env.HERMES_HOME = savedHermesHome;
+    }
+  });
+});
+
 describe("model selection", () => {
   function claudeEnv(home: string): Record<string, string> {
     return JSON.parse(readFileSync(join(home, ".claude", "settings.json"), "utf8")).env;
