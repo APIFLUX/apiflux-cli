@@ -185,21 +185,3 @@ describe("model selection", () => {
     expect(claudeEnv(home).ANTHROPIC_MODEL).toBe("kimi-k2.6");
   });
 });
-
-describe("gemini-cli tool", () => {
-  test("init writes ~/.gemini/.env with base URL, key and chosen model", async () => {
-    const { home, lines, log } = setup();
-    mkdirSync(join(home, ".gemini"));
-    const args = parseArgs([
-      "init", "--key", KEY, "--base-url", baseUrl,
-      "--tool", "gemini-cli", "--model", "deepseek-v4-pro", "--yes",
-    ]);
-    const code = await runInit(args, { home, log });
-    expect(code).toBe(0);
-    const env = readFileSync(join(home, ".gemini", ".env"), "utf8");
-    expect(env).toContain(`GOOGLE_GEMINI_BASE_URL="${baseUrl}"`);
-    expect(env).toContain(`GEMINI_API_KEY="${KEY}"`);
-    expect(env).toContain('GEMINI_MODEL="deepseek-v4-pro"');
-    expect(lines.join("\n")).toContain("Gemini CLI: wrote");
-  });
-});

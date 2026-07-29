@@ -17,11 +17,8 @@ Paste your ApiFlux API key when prompted, pick the tools to configure, done. The
 | Tool | What gets configured |
 | --- | --- |
 | Claude Code | `ANTHROPIC_BASE_URL` / `ANTHROPIC_AUTH_TOKEN` in `~/.claude/settings.json` |
-| Codex CLI | `model_providers.apiflux` in `~/.codex/config.toml` (key stays in the `APIFLUX_API_KEY` env var, never in the file); with `--model`, also sets it as the default provider/model |
-| Gemini CLI | `GOOGLE_GEMINI_BASE_URL` / `GEMINI_API_KEY` (and `GEMINI_MODEL` if chosen) in `~/.gemini/.env` |
-| Anything OpenAI-compatible | Prints `export OPENAI_BASE_URL` / `OPENAI_API_KEY` (and `OPENAI_MODEL` if chosen) lines for your shell or `.env` |
-
-Any model your key can use works in any tool — the ApiFlux gateway converts between the Anthropic, OpenAI, and Gemini protocols. Picking a non-Claude model for Claude Code also pins its small/fast background model so every request stays on your chosen model.
+| Codex CLI | `model_providers.apiflux` in `~/.codex/config.toml` (key stays in the `APIFLUX_API_KEY` env var, never in the file) |
+| Anything OpenAI-compatible | Prints `export OPENAI_BASE_URL` / `OPENAI_API_KEY` lines for your shell or `.env` |
 
 ## Usage
 
@@ -35,8 +32,7 @@ npx apiflux-cli init --key -              # read the key from stdin
 | --- | --- |
 | `--key <key\|->` | API key; `-` reads from stdin; omit for a hidden prompt |
 | `--base-url <url>` | Override the API origin (self-hosted / testing) |
-| `--tool <id>` | Configure only this tool (repeatable): `claude-code`, `codex`, `gemini-cli`, `export` |
-| `--model <id>` | Default model for the configured tools; omit in a terminal to pick from a list, omit in scripts to keep each tool's default |
+| `--tool <id>` | Configure only this tool (repeatable): `claude-code`, `codex`, `export` |
 | `--yes` | Skip confirmations, overwrite conflicting config |
 | `--skip-verify` | Don't send the verification request |
 
