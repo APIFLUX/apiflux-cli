@@ -135,6 +135,31 @@ describe("opencode wiring", () => {
   });
 });
 
+describe("pi wiring", () => {
+  test("--tool pi registers all verified models and stores the key in auth.json", async () => {
+    const savedAgentDir = process.env.PI_CODING_AGENT_DIR;
+    delete process.env.PI_CODING_AGENT_DIR;
+    try {
+      const { home, log } = setup();
+      mkdirSync(join(home, ".pi"));
+      const args = parseArgs(["init", "--key", KEY, "--base-url", baseUrl, "--tool", "pi", "--yes"]);
+      const code = await runInit(args, { home, log });
+      expect(code).toBe(0);
+      const models = JSON.parse(readFileSync(join(home, ".pi", "agent", "models.json"), "utf8"));
+      expect(models.providers.apiflux.models.map((m: any) => m.id).sort()).toEqual([
+        "claude-opus-5",
+        "deepseek-v4-pro",
+        "gpt-5.5",
+      ]);
+      const auth = JSON.parse(readFileSync(join(home, ".pi", "agent", "auth.json"), "utf8"));
+      expect(auth.apiflux).toEqual({ type: "api_key", key: KEY });
+    } finally {
+      if (savedAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+      else process.env.PI_CODING_AGENT_DIR = savedAgentDir;
+    }
+  });
+});
+
 describe("model selection", () => {
   function claudeEnv(home: string): Record<string, string> {
     return JSON.parse(readFileSync(join(home, ".claude", "settings.json"), "utf8")).env;
