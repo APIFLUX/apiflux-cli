@@ -21,7 +21,11 @@ const baseUrl = `http://127.0.0.1:${server.port}`;
 describe("verifyKey", () => {
   test("valid key → ok with model count", async () => {
     const result = await verifyKey(baseUrl, KEY);
-    expect(result).toEqual({ status: "ok", modelCount: 2 });
+    expect(result).toEqual({
+      status: "ok",
+      modelCount: 2,
+      models: ["claude-sonnet-5", "gpt-5"],
+    });
   });
 
   test("invalid key → unauthorized", async () => {

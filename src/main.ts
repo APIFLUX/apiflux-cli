@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import * as p from "@clack/prompts";
 import { parseArgs, USAGE, KNOWN_TOOLS, type ParsedArgs, type ToolId } from "./args";
 import { ADAPTERS, runInit } from "./init";
+import type { ModelGroup } from "./model-groups";
 
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
@@ -39,6 +40,23 @@ async function resolveTools(args: ParsedArgs, home: string): Promise<ToolId[]> {
   return selected as ToolId[];
 }
 
+const SKIP_MODEL = "__skip__";
+
+async function selectModelInteractively(groups: ModelGroup[]): Promise<string | undefined> {
+  const options = [
+    { value: SKIP_MODEL, label: "Skip (keep each tool's own default)" },
+    ...groups.flatMap((group) =>
+      group.models.map((model) => ({ value: model, label: model, hint: group.label })),
+    ),
+  ];
+  const chosen = await p.select({
+    message: "Default model for the configured tools?",
+    options,
+  });
+  if (p.isCancel(chosen) || chosen === SKIP_MODEL) return undefined;
+  return chosen;
+}
+
 async function main(): Promise<number> {
   let args: ParsedArgs;
   try {
@@ -67,6 +85,11 @@ async function main(): Promise<number> {
         const answer = await p.confirm({ message: question });
         return !p.isCancel(answer) && answer;
       },
+      // Interactive selection needs a real terminal; scripts use --model.
+      selectModel:
+        args.model === undefined && process.stdin.isTTY
+          ? selectModelInteractively
+          : undefined,
     },
   );
   p.outro(code === 0 ? "All set." : "Finished with warnings — see messages above.");

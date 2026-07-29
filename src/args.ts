@@ -5,6 +5,7 @@ export interface ParsedArgs {
   command: "init" | "help";
   key: string | undefined;
   baseUrl: string | undefined;
+  model: string | undefined;
   tools: ToolId[];
   yes: boolean;
   skipVerify: boolean;
@@ -15,6 +16,7 @@ export const USAGE = `usage: apiflux init [options]
 options:
   --key <key|->     API key (use "-" to read from stdin; omit for hidden prompt)
   --base-url <url>  Override the ApiFlux API origin
+  --model <id>      Default model to configure in each tool (must be usable by the key)
   --tool <id>       Configure only this tool (repeatable): ${KNOWN_TOOLS.join(", ")}
   --yes             Skip confirmations (overwrite conflicting config)
   --skip-verify     Do not send the verification request
@@ -28,6 +30,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     command: "help",
     key: undefined,
     baseUrl: undefined,
+    model: undefined,
     tools: [],
     yes: false,
     skipVerify: false,
@@ -51,6 +54,9 @@ export function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--base-url":
         parsed.baseUrl = takeValue();
+        break;
+      case "--model":
+        parsed.model = takeValue();
         break;
       case "--tool": {
         const tool = takeValue();

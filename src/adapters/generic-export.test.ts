@@ -20,3 +20,22 @@ describe("genericExportAdapter", () => {
     expect(text).toContain(`export OPENAI_API_KEY="${KEY}"`);
   });
 });
+
+describe("genericExportAdapter model", () => {
+  test("chosen model adds an OPENAI_MODEL export line", () => {
+    const lines = genericExportAdapter.write("/nowhere", {
+      baseUrl: "https://apiflux.ai",
+      key: "sk-x",
+      model: "deepseek-v4-pro",
+    });
+    expect(lines.some((line) => line === 'export OPENAI_MODEL="deepseek-v4-pro"')).toBe(true);
+  });
+
+  test("no model → no OPENAI_MODEL line", () => {
+    const lines = genericExportAdapter.write("/nowhere", {
+      baseUrl: "https://apiflux.ai",
+      key: "sk-x",
+    });
+    expect(lines.join("\n")).not.toContain("OPENAI_MODEL");
+  });
+});

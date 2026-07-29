@@ -5,7 +5,8 @@ import { codexAdapter } from "./adapters/codex";
 import { genericExportAdapter } from "./adapters/generic-export";
 import { normalizeBaseUrl } from "./endpoint";
 import { maskKeysIn } from "./mask";
-import { verifyKey } from "./verify";
+import { groupModelsByMaker, type ModelGroup } from "./model-groups";
+import { verifyKey, type VerifyResult } from "./verify";
 
 // Production serves the API on the apex domain (deploy/caddy/Caddyfile @backend block);
 // api.apiflux.ai does not exist.
@@ -24,6 +25,8 @@ export interface InitDeps {
   keyWasInline?: boolean;
   /** Asked per conflict when --yes is absent. Defaults to rejecting. */
   confirm?: (question: string) => Promise<boolean>;
+  /** Interactive model picker; undefined result skips model configuration. */
+  selectModel?: (groups: ModelGroup[]) => Promise<string | undefined>;
 }
 
 export async function runInit(args: ParsedArgs, deps: InitDeps): Promise<number> {
@@ -45,7 +48,24 @@ export async function runInit(args: ParsedArgs, deps: InitDeps): Promise<number>
     log("note: this command line contained your API key; consider clearing it from shell history (e.g. `history -d`).");
   }
 
-  const input = { baseUrl, key };
+  // Verification runs before writes so the model list can drive selection;
+  // an invalid key still writes config (matching prior behavior) and is
+  // reported at the end.
+  const verified: VerifyResult | undefined = args.skipVerify
+    ? undefined
+    : await verifyKey(baseUrl, key);
+  const availableModels = verified?.status === "ok" ? verified.models : undefined;
+
+  let model = args.model;
+  if (model !== undefined && availableModels !== undefined && !availableModels.includes(model)) {
+    log(`error: model ${JSON.stringify(model)} is not available to this key; run with no --model to pick interactively.`);
+    return 1;
+  }
+  if (model === undefined && deps.selectModel && availableModels !== undefined && availableModels.length > 0) {
+    model = await deps.selectModel(groupModelsByMaker(availableModels));
+  }
+
+  const input = { baseUrl, key, model };
   let failed = false;
   for (const toolId of args.tools) {
     const adapter = ADAPTERS[toolId];
@@ -72,12 +92,12 @@ export async function runInit(args: ParsedArgs, deps: InitDeps): Promise<number>
   }
   if (failed) return 1;
 
-  if (args.skipVerify) {
+  if (verified === undefined) {
     log("done (verification skipped).");
     return 0;
   }
 
-  const result = await verifyKey(baseUrl, key);
+  const result = verified;
   switch (result.status) {
     case "ok":
       log(`success: key verified, ${result.modelCount} model(s) available via ${baseUrl}.`);
