@@ -1,7 +1,7 @@
 {
   "name": "apiflux-cli",
   "version": "0.3.0",
-  "description": "One-command setup of ApiFlux for local AI coding tools (Claude Code, Codex CLI)",
+  "description": "One-command setup of ApiFlux for local AI coding tools (Claude Code, Codex CLI, OpenCode)",
   "type": "module",
   "bin": {
     "apiflux": "./dist/apiflux.js"
@@ -32,6 +32,7 @@
     "apiflux",
     "claude-code",
     "codex",
+    "opencode",
     "openai-compatible",
     "api-gateway",
     "cli"

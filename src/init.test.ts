@@ -102,6 +102,39 @@ describe("runInit end-to-end", () => {
   });
 });
 
+describe("opencode wiring", () => {
+  test("--tool opencode registers all verified models and stores the key in auth.json", async () => {
+    const savedConfigHome = process.env.XDG_CONFIG_HOME;
+    const savedDataHome = process.env.XDG_DATA_HOME;
+    delete process.env.XDG_CONFIG_HOME;
+    delete process.env.XDG_DATA_HOME;
+    try {
+      const { home, log } = setup();
+      mkdirSync(join(home, ".config", "opencode"), { recursive: true });
+      const args = parseArgs(["init", "--key", KEY, "--base-url", baseUrl, "--tool", "opencode", "--yes"]);
+      const code = await runInit(args, { home, log });
+      expect(code).toBe(0);
+      const config = JSON.parse(
+        readFileSync(join(home, ".config", "opencode", "opencode.json"), "utf8"),
+      );
+      expect(Object.keys(config.provider.apiflux.models).sort()).toEqual([
+        "claude-opus-5",
+        "deepseek-v4-pro",
+        "gpt-5.5",
+      ]);
+      const auth = JSON.parse(
+        readFileSync(join(home, ".local", "share", "opencode", "auth.json"), "utf8"),
+      );
+      expect(auth.apiflux).toEqual({ type: "api", key: KEY });
+    } finally {
+      if (savedConfigHome === undefined) delete process.env.XDG_CONFIG_HOME;
+      else process.env.XDG_CONFIG_HOME = savedConfigHome;
+      if (savedDataHome === undefined) delete process.env.XDG_DATA_HOME;
+      else process.env.XDG_DATA_HOME = savedDataHome;
+    }
+  });
+});
+
 describe("model selection", () => {
   function claudeEnv(home: string): Record<string, string> {
     return JSON.parse(readFileSync(join(home, ".claude", "settings.json"), "utf8")).env;
