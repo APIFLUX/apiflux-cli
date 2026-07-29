@@ -21,4 +21,4 @@ Status: resolved（第一批）
 
 ## Comments
 
-- 2026-07-29 已实现（TDD）：init 验证前置（同一次 /v1/models 请求兼做模型校验与最终报告，Key 无效仍写配置的既有契约保留）；`--model` 不在列表内时报错且不落盘；`selectModel` 注入缝 + main.ts 接 @clack select（仅 TTY 且未传 --model）；claude-code 非 Claude 模型写双环境变量；codex 选模型时写根级 model + model_provider=apiflux 并有冲突检测。57 测试全过，build + --help 冒烟通过。generic-export 未附模型（导出格式不含模型概念，维持现状）。
+- 2026-07-29 已实现（TDD）：init 验证前置（同一次 /v1/models 请求兼做模型校验与最终报告，Key 无效仍写配置的既有契约保留）；`--model` 不在列表内时报错且不落盘；`selectModel` 注入缝 + main.ts 接 @clack select（仅 TTY 且未传 --model）；claude-code 非 Claude 模型写双环境变量；codex 选模型时写根级 model + model_provider=apiflux 并有冲突检测。57 测试全过，build + --help 冒烟通过。generic-export 选模型时附 `OPENAI_MODEL` 导出行。

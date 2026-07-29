@@ -15,10 +15,14 @@ export const genericExportAdapter: Adapter = {
   },
 
   write(_home, input: AdapterInput) {
-    return [
+    const lines = [
       "Add these to your shell or .env file:",
       `export OPENAI_BASE_URL="${withV1(input.baseUrl)}"`,
       `export OPENAI_API_KEY="${input.key}"`,
     ];
+    if (input.model !== undefined) {
+      lines.push(`export OPENAI_MODEL="${input.model}"`);
+    }
+    return lines;
   },
 };
