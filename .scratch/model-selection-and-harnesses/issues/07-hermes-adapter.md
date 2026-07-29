@@ -1,33 +1,32 @@
 # 07 Hermes 适配器
 
-Status: ready-for-agent（调研已落，2026-07-29）
+Status: research-done（2026-07-29 源码级调研闭环，无真机冒烟——用户拍板不在本机安装）
 
-从 03 占位拆出。Hermes = NousResearch/hermes-agent，bin `hermes`。
+从 03 占位拆出。Hermes = NousResearch/hermes-agent（Python），bin `hermes`。
 
-## 调研结论（来源：hermes-agent 官方 docs + cli-config.yaml.example，实施时以源码复核）
+## 核对结论（读 NousResearch/hermes-agent 源码，2026-07-29）
 
-- 配置：`~/.hermes/config.yaml`（YAML，需引入 yaml 依赖）；密钥在 `~/.hermes/.env`（.env 优先于 config.yaml 里的 api_key 字段）。
-- 自定义 OpenAI 兼容端点：
+- **路径**：home = `HERMES_HOME` 环境变量 → 否则 `~/.hermes`（hermes_constants.py）；配置 `~/.hermes/config.yaml`；密钥 `~/.hermes/.env`（.env 优先于 config.yaml 内联 api_key）。
+- **重大发现：不走 `model.provider: custom` 泛型路径，走 `custom_providers:` 命名列表**（providers.py `resolve_custom_provider`）：
   ```yaml
+  custom_providers:
+    - name: "ApiFlux"
+      base_url: "https://apiflux.ai/v1"
+      key_env: "APIFLUX_API_KEY"
+      models: [deepseek-v4-pro, kimi-k2.6, ...]   # 纯字符串列表
   model:
-    provider: custom            # 也可留 auto，由 base_url 覆盖
-    default: <model-id>
-    base_url: "https://apiflux.ai/v1"
-    # api_key: 'sk-...'         # 可写这里；官方推荐 .env
+    provider: "apiflux"        # display_name 小写或 "custom:apiflux" 均可匹配
+    default: "<裸模型 id>"
   ```
-- custom 端点默认用 `OPENAI_API_KEY` 鉴权（读 `~/.hermes/.env`，作用域仅 Hermes，不污染 shell）。
-- 默认模型：`model.default`；改后需重启。`hermes model` 有交互选择器。
-- 内置 provider 的模型名带 `provider/` 前缀（如 anthropic/claude-*）；custom 端点下 model id 直接用裸 id——实施时以源码确认。
+  - transport 固定 `openai_chat`；`key_env` 指定的环境变量做鉴权 → **完全避开 OPENAI_API_KEY 撞名**（泛型 custom 路径会撞）。
+  - `models` 为纯字符串列表时 hermes 会在 /v1/models 探测成功后自己刷新缓存（model_switch.py `_save_discovered_models_to_config` 只替换纯字符串列表、保留用户手工 curated 的 dict 形式）→ 我们写全量 id 列表既有开箱模型又保持可刷新。
+- **.env 写入格式**（照抄 hermes 自己的 `_write_env_vars`，memory_setup.py）：逐行 `KEY=value`（无引号、值内换行剥除）、保留其他行、更新同名行、0600。写 `APIFLUX_API_KEY=sk-...`。
+- **注释问题**：hermes 自己的 save_config 用 yaml.safe_dump 重生成，不保用户注释 → 我们用 npm `yaml` 包 Document API 回写（保注释），比官方行为更好，无需降级路径。
+- detect：`~/.hermes/`（或 HERMES_HOME 指向的目录）。
 
-## 待实施核对项
+## 方案（待实施）
 
-- [ ] `provider: custom` 与 `base_url` 覆盖的确切关系（cli-config.yaml.example + 源码）
-- [ ] `~/.hermes/.env` 写 `OPENAI_API_KEY` 是否被 custom 路径读取（与 config.yaml api_key 字段二选一）
-- [ ] api_mode 字段是否存在/必需（docs 两页说法不一）
-- [ ] detect 依据：`~/.hermes/` 目录
-- [ ] YAML 回写保注释问题：yaml 库（eemeli/yaml）支持 CST 级别保注释，验证可行性
-
-## 方案
-
-- 写 `~/.hermes/config.yaml` 的 model 段（provider/default/base_url）+ `~/.hermes/.env` 写 `OPENAI_API_KEY`（Hermes 私有目录，等价于 key 落盘但不进 shell 环境）。
-- plan() 冲突项：已有不同 base_url/provider/default；.env 已有 OPENAI_API_KEY。
+- 写 `config.yaml`：`custom_providers` 数组 merge（按 name=ApiFlux 匹配更新/追加）+ 选中模型时置 `model.provider: apiflux` + `model.default: <id>`；`yaml` Document API 保注释。
+- 写 `.env`：`APIFLUX_API_KEY` 行级 upsert，0600。
+- plan() 冲突：base_url 变更 / model.provider|default 变更 / .env 已有不同 APIFLUX_API_KEY（脱敏）。
+- 验证：单测 + 源码级契约（无真机冒烟）；可选 scratchpad venv 冒烟待议。

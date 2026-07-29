@@ -1,39 +1,38 @@
 # 06 Openclaw 适配器
 
-Status: ready-for-agent（调研已落，2026-07-29）
+Status: research-done（2026-07-29 源码级调研闭环，无真机冒烟——用户拍板不在本机安装）
 
 从 03 占位拆出。
 
-## 调研结论（来源：docs.openclaw.ai gateway/configuration + concepts/model-providers，实施时以源码复核）
+## 核对结论（读 openclaw/openclaw 源码，2026-07-29）
 
-- 配置：`~/.openclaw/openclaw.json`，**JSON5**（允许注释/尾逗号）。⚠️ 用 JSON.parse 会炸、用 JSON.stringify 回写会抹掉用户注释——需引入 json5 依赖，且回写丢注释的事实要在冲突提示里讲明。
-- 自定义 provider：
+- **路径**：state dir = `OPENCLAW_STATE_DIR` → 否则 `~/.openclaw`；配置 = `OPENCLAW_CONFIG_PATH` → 否则 `<state>/openclaw.json`（src/config/paths.ts）。JSON5（支持注释、`$include`、`${VAR}` 环境变量替换）。
+- **注释问题解除**：openclaw 自己的 io.write.ts 就是 `JSON.stringify(...,null,2)` 落盘 + `warnIfJSON5CommentsWillBeStripped` 警告——官方回写也抹注释。我们用 json5 parse + JSON stringify 回写不比官方差；plan() 检测到注释时照样给提示。
+  - ⚠️ 例外：raw 含 `$include` 时不可回写（会把 include 内联展开）→ 降级为手动 snippet。
+- **schema**（src/config/types.models.ts + docs/concepts/model-providers.md）：
   ```json5
   {
     agents: { defaults: { model: { primary: "apiflux/<model-id>" } } },
     models: {
-      mode: "merge",
       providers: {
         apiflux: {
           baseUrl: "https://apiflux.ai/v1",
-          apiKey: "sk-...",            // 或 "${APIFLUX_API_KEY}"
-          api: "openai-completions",   // 或 "anthropic-messages"
-          models: [{ id: "<id>", name: "<display>", contextWindow: 128000, maxTokens: 4096 }]
+          apiKey: "sk-...",           // SecretInput：字面量即官方 Control UI 的存法
+          api: "openai-completions",
+          models: [{ id: "<id>", name: "<id>" }]   // 官方文档示例即最小 {id,name}
         }
       }
     }
   }
   ```
-- `${VAR}` 环境变量替换：仅大写名；**变量缺失/为空时加载直接抛错**——比 OpenCode 的空串静默失败好，但 init 一次性场景下仍倾向字面量落盘。
-- 默认模型：`agents.defaults.model.primary = "provider/model-id"`。
+  - TS 类型里模型的 reasoning/cost/contextWindow/maxTokens 标必填是**物化后**形状；运行时 provider-model-helpers.ts 会补默认值，官方 Moonshot 示例就只写 `{id, name}`。
+  - `models.mode` 默认即 merge（源码只特判 `"replace"`）→ **不写 mode 字段**，避免覆盖用户已设的 replace。
+  - `${VAR}` 替换缺变量时加载抛错 → 不用环境变量引用，apiKey 字面量落盘（与 Control UI 行为一致；openclaw 回写时对已有 `${VAR}` 有 env-preserve 机制，不会破坏用户其他 provider 的引用）。
+- 默认模型：`agents.defaults.model.primary = "apiflux/<id>"`（接受 string 或 {primary,fallbacks}——已有 fallbacks 对象时只改 primary）。
+- detect：`~/.openclaw/`（或 OPENCLAW_STATE_DIR）。
 
-## 待实施核对项
+## 方案（待实施）
 
-- [ ] `models.mode: "merge"` 语义与是否必需
-- [ ] detect 依据：`~/.openclaw/` 目录
-- [ ] JSON5 回写策略：json5 库 stringify 不保注释——确认无更好方案（如仅在文件不存在/纯 JSON 时才接管，否则打印手动 snippet）
-
-## 方案
-
-- 写 `models.providers.apiflux`（openai-completions + withV1），key 字面量；选中模型写 models 数组 + `agents.defaults.model.primary`。
-- 回写丢注释风险：backupOnce 已有；若检测到文件含注释，plan() 里加冲突提示。
+- json5 依赖读（容注释）、`models.providers.apiflux` merge 回写（全量模型 `{id,name}`）、选中模型时置 `agents.defaults.model.primary`。
+- plan() 冲突：baseUrl 变更 / apiKey 变更（脱敏）/ primary 变更 / 原文件含注释（提示将被抹掉，同官方行为）/ 含 `$include`（降级手动 snippet）。
+- 验证：单测 + 源码级契约（无真机冒烟）；可选 docker 冒烟待议（仓库自带 Dockerfile）。
