@@ -21,6 +21,7 @@ Paste your ApiFlux API key when prompted, pick the tools to configure, done. The
 | OpenCode | `provider.apiflux` in `~/.config/opencode/opencode.json` with every model your key can use; key goes to OpenCode's own credential store (`~/.local/share/opencode/auth.json`, `0600`), never into the config file; with `--model`, also sets it as the default model |
 | Pi | `providers.apiflux` in `~/.pi/agent/models.json` with every model your key can use; key goes to Pi's own credential store (`~/.pi/agent/auth.json`, `0600`), never into the config file; with `--model`, also persists it via `defaultProvider`/`defaultModel` in `settings.json` |
 | Hermes | `custom_providers` entry in `~/.hermes/config.yaml` (comment-preserving YAML edit) with every model your key can use; key goes to `~/.hermes/.env` as `APIFLUX_API_KEY` (`0600`), never into config.yaml; with `--model`, also sets `model.provider`/`model.default` |
+| OpenClaw | `models.providers.apiflux` in `~/.openclaw/openclaw.json` with every model your key can use; with `--model`, also sets `agents.defaults.model.primary` (existing fallbacks kept). Note: like OpenClaw's own config writes, rewriting strips JSON5 comments; `$include` configs get a manual snippet instead |
 | Anything OpenAI-compatible | Prints `export OPENAI_BASE_URL` / `OPENAI_API_KEY` (and `OPENAI_MODEL` if chosen) lines for your shell or `.env` |
 
 Any model your key can use works in any tool — the ApiFlux gateway converts between the Anthropic and OpenAI protocols. Picking a non-Claude model for Claude Code also pins its small/fast background model so every request stays on your chosen model.
@@ -37,7 +38,7 @@ npx apiflux-cli init --key -              # read the key from stdin
 | --- | --- |
 | `--key <key\|->` | API key; `-` reads from stdin; omit for a hidden prompt |
 | `--base-url <url>` | Override the API origin (self-hosted / testing) |
-| `--tool <id>` | Configure only this tool (repeatable): `claude-code`, `codex`, `opencode`, `pi`, `hermes`, `export` |
+| `--tool <id>` | Configure only this tool (repeatable): `claude-code`, `codex`, `opencode`, `pi`, `hermes`, `openclaw`, `export` |
 | `--model <id>` | Default model for the configured tools; omit in a terminal to pick from a list, omit in scripts to keep each tool's default |
 | `--yes` | Skip confirmations, overwrite conflicting config |
 | `--skip-verify` | Don't send the verification request |

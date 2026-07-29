@@ -6,6 +6,7 @@ import { genericExportAdapter } from "./adapters/generic-export";
 import { opencodeAdapter } from "./adapters/opencode";
 import { piAdapter } from "./adapters/pi";
 import { hermesAdapter } from "./adapters/hermes";
+import { openclawAdapter } from "./adapters/openclaw";
 import { normalizeBaseUrl } from "./endpoint";
 import { maskKeysIn } from "./mask";
 import { groupModelsByMaker, type ModelGroup } from "./model-groups";
@@ -21,6 +22,7 @@ export const ADAPTERS: Record<ToolId, Adapter> = {
   opencode: opencodeAdapter,
   pi: piAdapter,
   hermes: hermesAdapter,
+  openclaw: openclawAdapter,
   export: genericExportAdapter,
 };
 

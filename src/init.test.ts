@@ -182,6 +182,34 @@ describe("hermes wiring", () => {
   });
 });
 
+describe("openclaw wiring", () => {
+  test("--tool openclaw registers all verified models with literal apiKey", async () => {
+    const savedStateDir = process.env.OPENCLAW_STATE_DIR;
+    const savedConfigPath = process.env.OPENCLAW_CONFIG_PATH;
+    delete process.env.OPENCLAW_STATE_DIR;
+    delete process.env.OPENCLAW_CONFIG_PATH;
+    try {
+      const { home, log } = setup();
+      mkdirSync(join(home, ".openclaw"));
+      const args = parseArgs(["init", "--key", KEY, "--base-url", baseUrl, "--tool", "openclaw", "--yes"]);
+      const code = await runInit(args, { home, log });
+      expect(code).toBe(0);
+      const config = JSON.parse(readFileSync(join(home, ".openclaw", "openclaw.json"), "utf8"));
+      expect(config.models.providers.apiflux.models.map((m: any) => m.id).sort()).toEqual([
+        "claude-opus-5",
+        "deepseek-v4-pro",
+        "gpt-5.5",
+      ]);
+      expect(config.models.providers.apiflux.apiKey).toBe(KEY);
+    } finally {
+      if (savedStateDir === undefined) delete process.env.OPENCLAW_STATE_DIR;
+      else process.env.OPENCLAW_STATE_DIR = savedStateDir;
+      if (savedConfigPath === undefined) delete process.env.OPENCLAW_CONFIG_PATH;
+      else process.env.OPENCLAW_CONFIG_PATH = savedConfigPath;
+    }
+  });
+});
+
 describe("model selection", () => {
   function claudeEnv(home: string): Record<string, string> {
     return JSON.parse(readFileSync(join(home, ".claude", "settings.json"), "utf8")).env;
