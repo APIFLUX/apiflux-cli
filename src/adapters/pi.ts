@@ -1,6 +1,7 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { withV1 } from "../endpoint";
+import { getModelCapabilities } from "../model-catalog";
 import type { Adapter, AdapterInput } from "./types";
 import { backupOnce } from "./backup";
 
@@ -38,8 +39,9 @@ function apifluxProvider(input: AdapterInput): Record<string, unknown> {
     name: "ApiFlux",
     baseUrl: withV1(input.baseUrl),
     api: "openai-completions",
-    // Only `id` is required; Pi treats all model metadata as optional.
-    models: modelIds.map((id) => ({ id })),
+    // Bare ids make Pi treat every model as non-reasoning and silently drop
+    // thinking-level changes (issue #7); unknown ids still fall back to bare.
+    models: modelIds.map((id) => ({ id, ...getModelCapabilities(id) })),
   };
 }
 

@@ -83,6 +83,25 @@ describe("opencodeAdapter.write", () => {
     expect(notes.join("\n")).toContain(configPath(home));
   });
 
+  test("known models carry limits and reasoning; unknown ids stay minimal", () => {
+    const home = tempHome();
+    opencodeAdapter.write(home, {
+      baseUrl: BASE_URL,
+      key: KEY,
+      availableModels: ["gpt-4o", "deepseek-v4-pro", "totally-new-model"],
+    });
+    const models = readJson(configPath(home)).provider.apiflux.models;
+    // Without limit.context opencode assumes a 128K-ish default for every model.
+    expect(models["gpt-4o"]).toEqual({
+      name: "gpt-4o",
+      reasoning: false,
+      limit: { context: 128_000, output: 16_384 },
+    });
+    expect(models["deepseek-v4-pro"].reasoning).toBe(true);
+    expect(models["deepseek-v4-pro"].limit.context).toBe(1_000_000);
+    expect(models["totally-new-model"]).toEqual({ name: "totally-new-model" });
+  });
+
   test("chosen model sets root model as apiflux/<id>", () => {
     const home = tempHome();
     opencodeAdapter.write(home, {
