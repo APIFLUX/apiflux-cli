@@ -1,8 +1,21 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { withV1 } from "../endpoint";
+import { getModelCapabilities } from "../model-catalog";
 import type { Adapter, AdapterInput } from "./types";
 import { backupOnce } from "./backup";
+
+// models.dev schema: without limit.context opencode assumes a generic ~128K
+// window for every model; unknown gateway ids keep the minimal shape.
+function opencodeModel(id: string): Record<string, unknown> {
+  const caps = getModelCapabilities(id);
+  if (!caps) return { name: id };
+  return {
+    name: id,
+    reasoning: caps.reasoning,
+    limit: { context: caps.contextWindow, output: caps.maxTokens },
+  };
+}
 
 // opencode resolves both dirs via xdg-basedir (packages/core/src/global.ts),
 // so the adapter must honor the same env overrides.
@@ -83,7 +96,7 @@ export const opencodeAdapter: Adapter = {
         name: "ApiFlux",
         // The key never goes into opencode.json; it lives in auth.json below.
         options: { baseURL: withV1(input.baseUrl) },
-        models: Object.fromEntries(modelIds.map((id) => [id, { name: id }])),
+        models: Object.fromEntries(modelIds.map((id) => [id, opencodeModel(id)])),
       },
     };
     if (input.model !== undefined) {

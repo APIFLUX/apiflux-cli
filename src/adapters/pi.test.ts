@@ -93,6 +93,27 @@ describe("piAdapter.write", () => {
     expect(settings.theme).toBe("dark");
   });
 
+  test("known models carry capability metadata; unknown ids stay bare", () => {
+    const home = tempHome();
+    piAdapter.write(home, {
+      baseUrl: BASE_URL,
+      key: KEY,
+      availableModels: ["qwen3.8-max", "gpt-4o", "totally-new-model"],
+    });
+    const entries = readJson(join(agentDir(home), "models.json")).providers.apiflux.models;
+    const byId = Object.fromEntries(entries.map((m: any) => [m.id, m]));
+    // Reasoning metadata is what makes Pi's thinking-level selector work (issue #7).
+    expect(byId["qwen3.8-max"].reasoning).toBe(true);
+    expect(byId["qwen3.8-max"].compat.thinkingFormat).toBe("qwen");
+    expect(byId["qwen3.8-max"].thinkingLevelMap.high).toBe("high");
+    // Real limits replace Pi's 128K-style fallbacks.
+    expect(byId["gpt-4o"].reasoning).toBe(false);
+    expect(byId["gpt-4o"].contextWindow).toBe(128_000);
+    expect(byId["gpt-4o"].maxTokens).toBe(16_384);
+    // Gateway models we don't know yet must still be selectable.
+    expect(byId["totally-new-model"]).toEqual({ id: "totally-new-model" });
+  });
+
   test("without availableModels falls back to the chosen model only", () => {
     const home = tempHome();
     piAdapter.write(home, { baseUrl: BASE_URL, key: KEY, model: "kimi-k2.6" });

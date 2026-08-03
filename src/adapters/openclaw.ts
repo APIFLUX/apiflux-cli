@@ -2,8 +2,24 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import JSON5 from "json5";
 import { withV1 } from "../endpoint";
+import { getModelCapabilities } from "../model-catalog";
 import type { Adapter, AdapterInput } from "./types";
 import { backupOnce } from "./backup";
+
+// types.models.ts accepts reasoning/contextWindow/maxTokens per model;
+// provider-model-helpers.ts otherwise fills a generic default context window.
+// Pi-specific compat/thinkingLevelMap are not part of OpenClaw's schema.
+function openclawModel(id: string): Record<string, unknown> {
+  const caps = getModelCapabilities(id);
+  if (!caps) return { id, name: id };
+  return {
+    id,
+    name: id,
+    reasoning: caps.reasoning,
+    contextWindow: caps.contextWindow,
+    maxTokens: caps.maxTokens,
+  };
+}
 
 // OpenClaw resolves its state dir and config path with env overrides
 // (src/config/paths.ts); the adapter must honor the same ones.
@@ -73,8 +89,7 @@ function apifluxProvider(input: AdapterInput): Record<string, unknown> {
     // ${VAR} references abort config load when the var is missing.
     apiKey: input.key,
     api: "openai-completions",
-    // Official docs' minimal shape; the runtime fills remaining metadata.
-    models: modelIds.map((id) => ({ id, name: id })),
+    models: modelIds.map(openclawModel),
   };
 }
 

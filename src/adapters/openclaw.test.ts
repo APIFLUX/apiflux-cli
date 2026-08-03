@@ -71,6 +71,27 @@ describe("openclawAdapter.write", () => {
     expect(notes.join("\n")).toContain(configPath(home));
   });
 
+  test("known models carry contextWindow/maxTokens/reasoning; unknown ids stay minimal", () => {
+    const home = tempHome();
+    openclawAdapter.write(home, {
+      baseUrl: BASE_URL,
+      key: KEY,
+      availableModels: ["gpt-4o", "deepseek-v4-pro", "totally-new-model"],
+    });
+    const models = readJson(home).models.providers.apiflux.models;
+    const byId = Object.fromEntries(models.map((m: any) => [m.id, m]));
+    // provider-model-helpers.ts otherwise fills a generic default context window.
+    expect(byId["gpt-4o"]).toEqual({
+      id: "gpt-4o",
+      name: "gpt-4o",
+      reasoning: false,
+      contextWindow: 128_000,
+      maxTokens: 16_384,
+    });
+    expect(byId["deepseek-v4-pro"].reasoning).toBe(true);
+    expect(byId["totally-new-model"]).toEqual({ id: "totally-new-model", name: "totally-new-model" });
+  });
+
   test("chosen model sets agents.defaults.model.primary", () => {
     const home = tempHome();
     openclawAdapter.write(home, {
