@@ -23,6 +23,7 @@ const LIVE_MODEL_IDS = [
   "gemini-3.1-pro-preview",
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
+  "gemini-3.7-flash",
   "glm-5.2",
   "gpt-4o",
   "gpt-4o-mini",
@@ -129,5 +130,21 @@ describe("family-specific entries", () => {
 
   test("glm-5.2 uses the zai thinking format", () => {
     expect(getModelCapabilities("glm-5.2")?.compat?.thinkingFormat).toBe("zai");
+  });
+
+  test("gemini-3.7-flash uses the Gemini reasoning map and 1M context", () => {
+    expect(getModelCapabilities("gemini-3.7-flash")).toEqual({
+      reasoning: true,
+      contextWindow: 1_048_576,
+      maxTokens: 65_536,
+      thinkingLevelMap: {
+        minimal: "minimal",
+        low: "low",
+        medium: "medium",
+        high: "high",
+        xhigh: "high",
+        max: "high",
+      },
+    });
   });
 });
