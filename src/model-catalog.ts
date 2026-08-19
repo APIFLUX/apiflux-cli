@@ -138,6 +138,7 @@ export const modelCatalog: Record<string, ModelCapabilities> = {
   "gemini-3.1-pro-preview": gemini(),
   "gemini-3.5-flash": gemini(),
   "gemini-3.5-flash-lite": gemini(),
+  "gemini-3.7-flash": gemini(),
 
   // OpenAI
   "gpt-4o": { reasoning: false, contextWindow: 128_000, maxTokens: 16_384 },
